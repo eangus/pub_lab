@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=qodem
+Comment=Qodem terminal emulator and communications package.
+Exec=qodem
+Icon=qodem
+Terminal=true
+Categories=Network;Dialup;FileTransfer;Telephony;
