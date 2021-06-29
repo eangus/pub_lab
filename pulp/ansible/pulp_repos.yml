@@ -146,6 +146,7 @@
       - name: Retrieve publication of repository
         pulp.squeezer.deb_publication:
           repository: local_ubuntu_20_04
+          structured: True
           state: present
         register: publication_result
       - name: Sync remote content to local repo.
