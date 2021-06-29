@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  pulp:
+    container_name: pulp_oi
+    image: "pulp/pulp:latest"
+    volumes:
+      - /opt/con/pulp/data:/var/lib/pulp
+      - /opt/con/pulp/settings:/etc/pulp
+      - /opt/con/pulp/db:/var/lib/pgsql
+      - /opt/con/pulp/containers:/var/lib/containers
+    ports:
+      - "8075:80"
+    restart: unless-stopped

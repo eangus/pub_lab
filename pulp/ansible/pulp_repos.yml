@@ -1,0 +1,158 @@
+---
+- name: Setting local repositories.
+  hosts: local
+  vars:
+    pulp_passwd: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          32636463313137336263346665666134636231653666656633336538353339626538633333373735
+          6230343738376466393836656333376666653763373038340a373664653931386332343736383338
+          62613337613662346562346233366431653861336365373438613135366430343838343862306236
+          3566373333653061630a323537646435653530636330326165653331393933336263323338383238
+          3734
+    pulp_server: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          33306661643565616662373337666533383631323134363434363262653431383336333438313835
+          6432383162346565396565653139353236643835316663340a616633393563376565323438623861
+          37326536376531303135383733383439646136613264643939663537393262656463373736663963
+          3465343263376533330a313261383838643136313363316436326139303565613965333262643439
+          64333163653931386138643261623033393835366435616436646365643836323738
+  module_defaults: &pulp_module_defaults
+    pulp.squeezer.rpm_repository: &pulp_connection_details
+      pulp_url: "{{ pulp_server }}"
+      username: admin
+      password: "{{ pulp_passwd }}"
+      validate_certs: False
+    pulp.squeezer.rpm_remote:
+      <<: *pulp_connection_details
+    pulp.squeezer.rpm_sync:
+      <<: *pulp_connection_details
+    pulp.squeezer.rpm_distribution:
+      <<: *pulp_connection_details
+    pulp.squeezer.rpm_publication:
+      <<: *pulp_connection_details
+    pulp.squeezer.deb_repository:
+      <<: *pulp_connection_details
+    pulp.squeezer.deb_remote:
+      <<: *pulp_connection_details
+    pulp.squeezer.deb_sync:
+      <<: *pulp_connection_details
+    pulp.squeezer.deb_distribution:
+      <<: *pulp_connection_details
+    pulp.squeezer.deb_publication:
+      <<: *pulp_connection_details
+  tasks:
+    - name: Initialize local repo.
+      pulp.squeezer.rpm_repository:
+        name: "local_cent_7_64_os"
+        description: "My Centos 7"
+        state: present
+    - name: Define remote repo.
+      pulp.squeezer.rpm_remote:
+        name: "remote_cent_7_64_os"
+        url: http://mirror.centos.org/centos/7/os/x86_64/
+        state: present
+    - name: Retrieve publication of repository
+      pulp.squeezer.rpm_publication:
+        repository: local_cent_7_64_os
+        state: present
+      register: publication_result
+#    - name: Sync remote content to local repo.
+#      pulp.squeezer.rpm_sync:
+#        remote: remote_cent_7_64_os
+#        repository: local_cent_7_64_os
+    - name: Distribute publication of repository
+      pulp.squeezer.rpm_distribution:
+        name: dist_cent_7_64_os
+        base_path: cent/7/64/os
+        publication: "{{ publication_result.publication.pulp_href }}"
+        state: present
+
+    - name: Initialize local repo.
+      pulp.squeezer.rpm_repository:
+        name: "local_fed_34_64_os"
+        description: "My Fedora 34 64bit OS"
+        state: present
+    - name: Define remote repo.
+      pulp.squeezer.rpm_remote:
+        name: "remote_fed_34_64_os"
+        url: https://dl.fedoraproject.org/pub/fedora/linux/releases/34/Everything/x86_64/os/
+        state: present
+    - name: Retrieve publication of repository
+      pulp.squeezer.rpm_publication:
+        repository: local_fed_34_64_os
+        state: present
+      register: publication_result
+#    - name: Sync remote content to local repo.
+#      pulp.squeezer.rpm_sync:
+#        remote: remote_fed_34_64_os
+#        repository: local_fed_34_64_os
+    - name: Distribute publication of repository
+      pulp.squeezer.rpm_distribution:
+        name: dist_fed_34_64_os
+        base_path: fed/34/64/os
+        publication: "{{ publication_result.publication.pulp_href }}"
+        state: present
+
+#    - name: Initialize local repo.
+#      pulp.squeezer.rpm_repository:
+#        name: "local_oel_8_os"
+#        description: "My Oracle Enterprise Linux 8 OS"
+#        state: present
+#    - name: Define remote repo.
+#      pulp.squeezer.rpm_remote:
+#        name: "remote_oel_8_os"
+#        url: https://yum.oracle.com/repo/OracleLinux/OL8/baseos/latest/x86_64/
+#        state: present
+#    - name: Retrieve publication of repository
+#      pulp.squeezer.rpm_publication:
+#        repository: local_oel_8_os
+#        state: present
+#      register: publication_result
+#    - name: Sync remote content to local repo.
+#      pulp.squeezer.rpm_sync:
+#        remote: remote_oel_8_os
+#        repository: local_oel_8_os
+#    - name: Distribute publication of repository
+#      pulp.squeezer.rpm_distribution:
+#        name: dist_oel_8_os
+#        base_path: oel/8/os
+#        publication: "{{ publication_result.publication.pulp_href }}"
+#        state: present
+#
+    - name: Initialize local repo.
+      pulp.squeezer.deb_repository:
+        name: local_ubuntu_20_04
+        description: "My Ubuntu 20_04"
+        state: present
+    - name: Define remote repo.
+      pulp.squeezer.deb_remote:
+        name: remote_ubuntu_20_04
+        distributions: focal/
+        architectures: amd64
+        components: main
+        url: http://archive.ubuntu.com/ubuntu/
+        state: present
+    - name: Retrieve publication of repository
+      pulp.squeezer.deb_publication:
+        repository: local_ubuntu_20_04
+        state: present
+      register: publication_result
+    - name: Sync remote content to local repo.
+      pulp.squeezer.deb_sync:
+        remote: remote_ubuntu_20_04
+        repository: local_ubuntu_20_04
+    - name: Distribute publication of repository
+      pulp.squeezer.deb_distribution:
+        name: focal
+        base_path: ubuntu/20/04/focal
+        publication: "{{ publication_result.publication.pulp_href }}"
+        state: present
+
+#    - name: Initialize local repo.
+#      deb_repository:
+#    - name: Define remote repo.
+#      deb_remote:
+#    - name: Sync remote content to local repo.
+#      deb_sync:
+#    - name: Publish repo.
+#      deb_distribution:
